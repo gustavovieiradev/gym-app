@@ -11,13 +11,13 @@ export type AuthNavigatorRoutesProps = NativeStackNavigationProp<AuthRoutes>
 
 const { Navigator, Screen } = createNativeStackNavigator<AuthRoutes>();
 
-const routes: React.FC = () => {
+const AuthRoutes: React.FC = () => {
   return (
-    <Navigator>
+    <Navigator screenOptions={{ headerShown: false }}>
       <Screen name='signIn' component={SignIn} />
       <Screen name='signUp' component={SignUp} />
     </Navigator>
   )
 }
 
-export default routes;
+export default AuthRoutes;
