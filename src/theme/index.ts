@@ -1,6 +1,17 @@
 import { extendTheme } from "native-base";
 
 export const THEME = extendTheme({
+  fontConfig: {
+    Roboto: {
+      400: {
+        normal: "Roboto_400Regular",
+      },
+      700: {
+        normal: 'Roboto_700Bold',
+      },
+      
+    },
+  },
   colors: {
     green: {
       700: '#00875F',
@@ -21,8 +32,9 @@ export const THEME = extendTheme({
     }
   },
   fonts: {
-    heading: 'Roboto_700Bold',
-    body: 'Roboto_400Regular',
+    heading: "Roboto",
+    body: "Roboto",
+    mono: "Roboto",
   },
   fontSizes: {
     xs: 12,
