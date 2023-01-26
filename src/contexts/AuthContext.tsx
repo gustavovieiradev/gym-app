@@ -1,5 +1,6 @@
 import { UserDto } from '@dtos/UserDto';
 import { api } from '@services/api';
+import { storageUserSave } from '@storage/storageUser';
 import { createContext, ReactNode, useState } from 'react';
 
 export type AuthContextDataProps = {
@@ -18,11 +19,14 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   async function signIn(email: string, password: string) {
     try {
+      
       const {data} = await api.post('/sessions', {email, password});
-      console.log(data)
+
       if (data.user) {
-        setUser(data.user)
+        setUser(data.user);
+        storageUserSave(data.user);
       }
+      
     } catch (error) {
       throw error;
     }
