@@ -17,6 +17,7 @@ export const ExerciseCard: React.FC<Props> = ({...rest}) => {
           h={16}
           rounded="md"
           mr={4}
+          resizeMode="cover"
         />
 
         <VStack flex={1}>
