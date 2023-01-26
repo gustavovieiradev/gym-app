@@ -11,6 +11,7 @@ import {yupResolver} from '@hookform/resolvers/yup';
 import { api } from '@services/api';
 import axios from 'axios';
 import { AppError } from '@utils/AppError';
+import { useAuth } from '@hooks/useAuth';
 
 // import { Container } from './styles';
 
@@ -29,8 +30,9 @@ const signUpSchema = yup.object({
 })
 
 const SignUp: React.FC = () => {
-
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const { signIn } = useAuth();
 
   const toast = useToast();
 
@@ -44,8 +46,10 @@ const SignUp: React.FC = () => {
 
   async function handleSignUp({email, name, password}: FormDataProps) {
     try {
-      const response = await api.post('/users', {name, email, password})
-      console.log(response.data)
+      setIsLoading(true);
+      await api.post('/users', {name, email, password})
+      await signIn(email, password);
+
     } catch (error) {
       const isAppError = error instanceof AppError;
       const title = isAppError ? error.message : 'Não foi possível criar a conta. Tente novamente.';
@@ -133,7 +137,11 @@ const SignUp: React.FC = () => {
             )}
           />
 
-          <Button title="Criar e acessar" onPress={handleSubmit(handleSignUp)} />
+          <Button 
+            title="Criar e acessar" 
+            onPress={handleSubmit(handleSignUp)} 
+            isLoading={isLoading} 
+          />
         </Center>
       
         <Button title="Voltar para o login" variant="outline" mt={8} onPress={handleGoBack} />
