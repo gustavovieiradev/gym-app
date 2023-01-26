@@ -1,5 +1,5 @@
 import {  Center, Heading, Image, ScrollView, Text, useToast, VStack } from 'native-base';
-import React from 'react';
+import React, { useState } from 'react';
 import BackgroundImg from '@assets/background.png';
 import LogoSvg from '@assets/logo.svg';
 import Input from '@components/Input';
@@ -16,7 +16,8 @@ type FormData = {
 }
 
 const SignIn: React.FC = () => {
-
+  const [isLoading, setIsLoading] = useState(false);
+  
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const toast = useToast()
 
@@ -30,10 +31,13 @@ const SignIn: React.FC = () => {
 
   async function handleSignin({email, password}: FormData) {
     try {
+      setIsLoading(true)
       await signIn(email, password);
+      setIsLoading(false);
     } catch (error) {
       const isAppError = error instanceof AppError;
       const title = isAppError ? error.message : 'Não foi possível entrar. Tente novamente mais tarde';
+      setIsLoading(false);
       toast.show({
         title,
         placement: 'top',
@@ -97,8 +101,10 @@ const SignIn: React.FC = () => {
             )}
           />
 
-          <Button title="Acessar"
+          <Button 
+            title="Acessar"
             onPress={handleSubmit(handleSignin)}
+            isLoading={isLoading}
           />
         </Center>
         <Center mt={24}>
