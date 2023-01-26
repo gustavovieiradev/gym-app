@@ -6,7 +6,7 @@ import { useAuth } from "@hooks/useAuth";
 import defaultUserPhotoImg from '@assets/userPhotoDefault.png';
 
 export const HomeHeader: React.FC = () => {
-  const {user} = useAuth();
+  const {user, signOut} = useAuth();
   return (
     <HStack bg="gray.600" pt={16} pb={5} px={8} alignItems="center">
       <UserPhoto 
@@ -20,7 +20,7 @@ export const HomeHeader: React.FC = () => {
         <Heading color="gray.100" fontSize="md" fontFamily="heading">{user.name}</Heading>
       </VStack>
 
-      <TouchableOpacity>
+      <TouchableOpacity onPress={signOut}>
         <Icon as={MaterialIcons} name="logout" color="gray.200" size={7} />
       </TouchableOpacity>
 
