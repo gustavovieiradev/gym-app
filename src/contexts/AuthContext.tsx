@@ -1,5 +1,6 @@
 import { UserDto } from '@dtos/UserDto';
 import { api } from '@services/api';
+import { storageAuthTokenGet, storageAuthTokenRemove, storageAuthTokenSave } from '@storage/storageAuthToken';
 import { storageUserGet, storageUserRemove, storageUserSave } from '@storage/storageUser';
 import { createContext, ReactNode, useEffect, useState } from 'react';
 
@@ -20,25 +21,39 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [user, setUser] = useState<UserDto>({} as UserDto);
   const [isLoadingUserStorageData, setIsLoadingUserStorageData] = useState(true);
 
+  async function userAndTokenUpdate(user: UserDto, token: string) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(user);
+  }
+
   async function signIn(email: string, password: string) {
     try {
       
-      const {data} = await api.post('/sessions', {email, password});
+      const { data } = await api.post('/sessions', {email, password});
 
-      if (data.user) {
-        setUser(data.user);
+      if (data.user && data.token) {
+        setIsLoadingUserStorageData(true);
         storageUserSave(data.user);
+        storageAuthTokenSave(data.token);
+        userAndTokenUpdate(
+          data.user,
+          data.token
+        )
       }
       
     } catch (error) {
       throw error;
+    } finally {
+      setIsLoadingUserStorageData(false)
     }
   }
 
   async function signOut() {
     try {
       setIsLoadingUserStorageData(true);
-      storageUserRemove();
+      await storageUserRemove();
+      await storageAuthTokenRemove();
+
       setUser({} as UserDto);
     } catch (err) {
       throw err;
@@ -48,11 +63,13 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   }
 
   async function loadUserData() {
-    try {  
+    try {
+      setIsLoadingUserStorageData(true)
       const userLogged = await storageUserGet();
+      const token = await storageAuthTokenGet();
 
-      if (!!userLogged?.id) {
-        setUser(userLogged);
+      if (!!userLogged?.id && token) {
+        userAndTokenUpdate(userLogged, token);
       }
     } catch (error) {
       throw error;
