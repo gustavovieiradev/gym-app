@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Alert, TouchableOpacity } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import { Controller, useForm } from "react-hook-form";
 
 
 const PHOTO_SIZE = 33;
@@ -15,7 +16,8 @@ export const Profile: React.FC = () => {
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
   const [userPhoto, setUserPhoto] = useState('https://github.com/gustavovieiradev.png');
 
-  const toast = useToast()
+  const toast = useToast();
+  const { control } = useForm();
 
   async function handleUserPhotoSelect() {
     setPhotoIsLoading(true);
@@ -89,6 +91,9 @@ export const Profile: React.FC = () => {
           <Heading color="gray.200" fontSize="md" mb={2}>
             Alterar senha
           </Heading>
+
+          
+
           <Input placeholder="Senha antiga" bg="gray.600" secureTextEntry />
           <Input placeholder="Nova senha" bg="gray.600" secureTextEntry />
           <Input placeholder="Confirme a senha" bg="gray.600" secureTextEntry />
