@@ -1,20 +1,69 @@
 import { ExerciseCard } from "@components/ExerciseCard"
 import { Group } from "@components/Group"
 import { HomeHeader } from "@components/HomeHeader"
-import { useNavigation } from "@react-navigation/native"
+import { ExerciseDto } from "@dtos/ExerciseDto"
+import { useFocusEffect, useNavigation } from "@react-navigation/native"
 import { AppNavigatorRoutesProps } from "@routes/app.routes"
-import { VStack, Text, HStack, FlatList, Heading } from "native-base"
-import { useState } from "react"
+import { api } from "@services/api"
+import { AppError } from "@utils/AppError"
+import { VStack, Text, HStack, FlatList, Heading, useToast } from "native-base"
+import { useCallback, useEffect, useState } from "react"
 
 export const Home: React.FC = () => {
-  const [groups, setGroups] = useState(['costa', 'ombro'])
-  const [exercises, setExercises] = useState(['Puxada frontal', 'Remada curvada', 'Remada curvada', 'Remada curvada'])
+  const [groups, setGroups] = useState<string[]>([]);
+  const [exercises, setExercises] = useState<ExerciseDto[]>([])
   const [groupSelected, setGroupSelected] = useState('costa');
 
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
+  useEffect(() => {
+    fetchGroups();
+  }, [])
+
+  useFocusEffect(useCallback(() => {
+    fetchExercisesByGroup()
+  }, [groupSelected]))
+
   function handleOpenExerciseDetails() {
     navigation.navigate('exercise')
+  }
+
+  const toast = useToast();
+
+  async function fetchGroups() {
+    try {
+      const response = await api.get('/groups');
+      setGroups(response.data)
+      setGroupSelected(response.data[0])
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError ? error.message : 'Não foi possível os grupos musculares';
+
+      toast.show({
+        title,
+        placement: 'top',
+        bgColor: 'red.500'
+      })
+    }
+  }
+
+  async function fetchExercisesByGroup() {
+    try {
+      const response = await api.get(`/exercises/bygroup/${groupSelected}`);
+      setExercises(response.data);
+
+      console.log(response.data)
+
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError ? error.message : 'Não foi possível os exercícios';
+
+      toast.show({
+        title,
+        placement: 'top',
+        bgColor: 'red.500'
+      })
+    }
   }
 
   return (
@@ -51,8 +100,14 @@ export const Home: React.FC = () => {
 
         <FlatList 
           data={exercises}
-          keyExtractor={item => item}
-          renderItem={({item }) => <ExerciseCard onPress={handleOpenExerciseDetails} />}
+          keyExtractor={item => item.id}
+          renderItem={({item }) => (
+            <ExerciseCard 
+              onPress={handleOpenExerciseDetails} 
+              data={item}
+            />
+            )
+          }
           showsVerticalScrollIndicator={false}
           _contentContainerStyle={{ paddingBottom: 20 }}
         />
