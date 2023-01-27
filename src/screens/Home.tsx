@@ -26,8 +26,8 @@ export const Home: React.FC = () => {
     fetchExercisesByGroup()
   }, [groupSelected]))
 
-  function handleOpenExerciseDetails() {
-    navigation.navigate('exercise')
+  function handleOpenExerciseDetails(exerciseId: string) {
+    navigation.navigate('exercise', {exerciseId})
   }
 
   const toast = useToast();
@@ -110,7 +110,7 @@ export const Home: React.FC = () => {
             keyExtractor={item => item.id}
             renderItem={({item }) => (
               <ExerciseCard 
-                onPress={handleOpenExerciseDetails} 
+                onPress={() => handleOpenExerciseDetails(item.id)} 
                 data={item}
               />
               )
