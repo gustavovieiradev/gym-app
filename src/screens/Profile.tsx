@@ -19,6 +19,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { useAuth } from '@hooks/useAuth';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { api } from '@services/api';
+import { AppError } from '@utils/AppError';
 
 const PHOTO_SIZE = 33;
 
@@ -32,16 +34,35 @@ type FormDataProps = {
 
 const profileSchema = yup.object({
   name: yup.string().required('Informe o nome'),
+  password: yup
+    .string()
+    .min(6, 'A senha deve ter pelo menos 6 dígitos')
+    .nullable()
+    .transform((value) => (!!value ? value : null)),
+  confirm_password: yup
+    .string()
+    .nullable()
+    .transform((value) => (!!value ? value : null))
+    .oneOf([yup.ref('password'), null], 'A confirmação de senha não confere')
+    .when('password', {
+      is: (Field: any) => Field,
+      then: yup
+        .string()
+        .nullable()
+        .required('Informe a confirmação da senha')
+        .transform((value) => (!!value ? value : null)),
+    }),
 });
 
 export const Profile: React.FC = () => {
+  const [isUpdating, setIsUpdating] = useState(false);
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
   const [userPhoto, setUserPhoto] = useState(
     'https://github.com/gustavovieiradev.png'
   );
 
   const toast = useToast();
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const {
     control,
     handleSubmit,
@@ -97,7 +118,33 @@ export const Profile: React.FC = () => {
   }
 
   async function handleProfileUpdate(data: FormDataProps) {
-    console.log(data);
+    try {
+      setIsUpdating(true);
+
+      await api.put('/users', data);
+
+      const userUpdated = user;
+      userUpdated.name = data.name;
+
+      await updateUserProfile(userUpdated);
+
+      toast.show({
+        title: 'Perfil atualizado com sucesso!',
+        placement: 'top',
+        bgColor: 'green.500',
+      });
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError ? error.message : 'Erro interno';
+
+      toast.show({
+        title,
+        placement: 'top',
+        bgColor: 'red.500',
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   }
 
   return (
@@ -189,6 +236,7 @@ export const Profile: React.FC = () => {
                 bg="gray.600"
                 secureTextEntry
                 onChangeText={onChange}
+                errorMessage={errors.password?.message}
               />
             )}
           />
@@ -201,6 +249,7 @@ export const Profile: React.FC = () => {
                 bg="gray.600"
                 secureTextEntry
                 onChangeText={onChange}
+                errorMessage={errors.confirm_password?.message}
               />
             )}
           />
@@ -209,6 +258,8 @@ export const Profile: React.FC = () => {
             title="Atualizar"
             mb={4}
             onPress={handleSubmit(handleProfileUpdate)}
+            isLoading={isUpdating}
+            isLoadingText="Atualizando..."
           />
         </VStack>
       </ScrollView>
